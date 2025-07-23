@@ -32,9 +32,53 @@
         .win-card {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         }
+        .purchase-confirmation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            display: none;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 999;
+            display: none;
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
+    <!-- Purchase Confirmation Modal -->
+    <div class="overlay" id="overlay"></div>
+    <div class="purchase-confirmation" id="confirmationModal">
+        <div class="text-center mb-6">
+            <i class="fas fa-check-circle text-green-500 text-5xl mb-4"></i>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">Redirecting to WhatsApp</h3>
+            <p class="text-gray-600 mb-4">You're about to purchase: <span id="ticketName" class="font-bold text-blue-600"></span></p>
+            <p class="text-gray-700">Price: <span id="ticketPrice" class="font-bold"></span></p>
+        </div>
+        <div class="flex justify-center gap-4">
+            <button id="cancelBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-lg transition">
+                Cancel
+            </button>
+            <button id="confirmBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition">
+                Confirm
+            </button>
+        </div>
+    </div>
+
     <!-- Header -->
     <header class="bg-gradient-to-r from-blue-900 to-purple-900 text-white shadow-lg">
         <div class="container mx-auto px-4 py-6">
@@ -110,7 +154,9 @@
                                 <span>Basic support</span>
                             </li>
                         </ul>
-                        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+                        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 purchase-btn" 
+                                data-name="REGULAR TICKET" 
+                                data-price="KSh 150">
                             Purchase Now
                         </button>
                     </div>
@@ -147,7 +193,9 @@
                                 <span>Exclusive tips</span>
                             </li>
                         </ul>
-                        <button class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+                        <button class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 purchase-btn"
+                                data-name="VIP TICKET" 
+                                data-price="KSh 350">
                             Purchase Now
                         </button>
                     </div>
@@ -185,7 +233,9 @@
                                 <span>Personalized strategy</span>
                             </li>
                         </ul>
-                        <button class="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+                        <button class="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 purchase-btn"
+                                data-name="VVIP TICKET" 
+                                data-price="KSh 500">
                             Purchase Now
                         </button>
                     </div>
@@ -455,6 +505,62 @@
                 amount: "+KSh 6,500"
             }
         ];
+
+        // Purchase ticket functionality
+        const purchaseButtons = document.querySelectorAll('.purchase-btn');
+        const confirmationModal = document.getElementById('confirmationModal');
+        const overlay = document.getElementById('overlay');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const ticketNameEl = document.getElementById('ticketName');
+        const ticketPriceEl = document.getElementById('ticketPrice');
+        
+        let selectedTicket = null;
+        
+        purchaseButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                selectedTicket = {
+                    name: button.getAttribute('data-name'),
+                    price: button.getAttribute('data-price')
+                };
+                
+                ticketNameEl.textContent = selectedTicket.name;
+                ticketPriceEl.textContent = selectedTicket.price;
+                
+                confirmationModal.style.display = 'block';
+                overlay.style.display = 'block';
+            });
+        });
+        
+        cancelBtn.addEventListener('click', () => {
+            confirmationModal.style.display = 'none';
+            overlay.style.display = 'none';
+            selectedTicket = null;
+        });
+        
+        confirmBtn.addEventListener('click', () => {
+            if (selectedTicket) {
+                // Create WhatsApp URL with pre-filled message
+                const message = `Hello WINNING BETS KE, I want to purchase the ${selectedTicket.name} for ${selectedTicket.price}.`;
+                const encodedMessage = encodeURIComponent(message);
+                const whatsappUrl = `https://wa.me/254743319644?text=${encodedMessage}`;
+                
+                // Open WhatsApp in a new tab
+                window.open(whatsappUrl, '_blank');
+                
+                // Close the modal
+                confirmationModal.style.display = 'none';
+                overlay.style.display = 'none';
+                selectedTicket = null;
+            }
+        });
+        
+        // Close modal when clicking outside
+        overlay.addEventListener('click', () => {
+            confirmationModal.style.display = 'none';
+            overlay.style.display = 'none';
+            selectedTicket = null;
+        });
 
         // Load more wins functionality
         const loadMoreBtn = document.getElementById('loadMoreBtn');
